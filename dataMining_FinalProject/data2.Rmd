@@ -1,0 +1,107 @@
+---
+title: "data2_analysis"
+author: "taylor herb"
+date: "11/28/2020"
+output: html_document
+---
+
+
+```{r}
+library(caret)
+library(dplyr)
+library(tidymodels)
+library(tidyverse)
+
+
+
+df <- read.csv(file = 'Data2_3.csv')
+
+
+
+full_df <- df %>% mutate(FactLevel = factor(FactLevel))
+
+set.seed(123)
+splitData <- initial_split(full_df)
+trainData <- training(splitData)
+testData  <- testing(splitData)
+
+
+```
+
+```{r}
+cv <- trainControl(method = "cv", number = 10)
+```
+
+
+
+
+##random forest
+```{r}
+
+
+
+set.seed(1101)
+fit_rf <- train(FactLevel ~ ., 
+                       data = trainData,
+                       method = 'rf',
+                      trControl = cv)
+```
+
+```{r}
+fit_rf
+```
+
+
+##confusion matrix
+```{r}
+rf_pred <- predict(fit_rf, testData)
+
+confusionMatrix_rf <- confusionMatrix(rf_pred,testData$FactLevel)
+
+confusionMatrix_rf
+```
+
+##knn
+```{r}
+set.seed(1101)
+fit_knn <- train(FactLevel ~ ., 
+                    data = trainData,
+                    method = "knn",
+                    #etric = "RMSE"
+                  
+                    trControl = cv)
+```
+
+```{r}
+fit_knn
+```
+
+##confusion matrix
+```{r}
+knn_pred <- predict(fit_knn, testData)
+
+confusionMatrix_knn <- confusionMatrix(knn_pred,testData$FactLevel)
+
+confusionMatrix_knn
+```
+
+```{r}
+set.seed(825)
+fit_svm <- train(FactLevel ~ .,
+                 data = trainData, 
+                 method = "svmLinear", 
+                 trControl = cv)
+```
+
+
+```{r}
+fit_svm
+```
+
+```{r}
+svm_pred <- predict(fit_svm, testData)
+
+confusionMatrix_svm <- confusionMatrix(svm_pred,testData$FactLevel)
+
+confusionMatrix_svm
+```

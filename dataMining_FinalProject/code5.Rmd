@@ -1,0 +1,350 @@
+---
+title: "fakenews1"
+author: "Chengchen Wang"
+date: "11/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse) 
+library(tidytext)
+library(stringr)
+library(tm) # for NLP
+library(plyr) #  for pre-processing 
+library(tidyverse) # for pre-processing and visualisation
+library(reshape2) # for melt function
+library(glmnet) # for Logistic Regression classifier
+library(randomForest) # for Random Forest classifier
+```
+
+```{r}
+setwd("~/Desktop/Data Mining Project")
+fake<-read_csv("false.csv")
+fake <- na.omit(fake)
+fake<-cbind(fake,Type=rep(1,nrow(fake)))
+true<-read_csv("true.csv")
+true <- na.omit(true)
+true<-cbind(true,Type=rep(6,nrow(true)))
+df<-rbind(fake,true)
+index<-seq.int(nrow(df))
+df<-cbind(index=index,df)
+df$X1=NULL
+summary(df)
+df%>%count()
+head(df)
+```
+```{r}
+#gsub("Trump", "DJT", df$Content)
+df$Content <- str_replace_all(df$Content, "Trump", "DJT") 
+```
+
+text process
+```{r}
+tidy_df <- df %>%
+  unnest_tokens(word, Content)
+tidy_df <- tidy_df %>%
+  anti_join(stop_words)
+tidy_df
+```
+sentiment 
+```{r}
+tidy_df1 <- inner_join(tidy_df, get_sentiments("bing")) 
+tidy_df2 <- count(tidy_df1, Type, index = index, sentiment) 
+tidy_df3 <- spread(tidy_df2, sentiment, n, fill = 0)
+tidy_df4 <- mutate(tidy_df3, sentiment = positive - negative)
+tidy_df4
+ggplot(tidy_df4, aes(index, sentiment, fill = Type)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~Type, nrow = 2, scales = "free_x")
+
+library(repr)
+options(repr.plot.width=20, repr.plot.height=20)
+tidy_df1 %>%
+  count(Type,sentiment, word) %>%
+  ungroup() %>%
+  filter(n>=3)%>%
+  mutate(n = ifelse(sentiment == "negative", -n, n)) %>%
+  mutate(term = reorder(word, n)) %>%
+  ggplot(aes(n,term, fill = sentiment)) +
+  geom_bar(stat = "identity") +
+  ylab("Contribution to sentimentword")+
+  facet_wrap(Type~., nrow = 2)
+
+
+```
+```{r}
+setwd("~/Desktop/Data Mining Project")
+df<-read_csv("Data.csv")
+df <- na.omit(df)
+index<-seq.int(nrow(df))
+df<-cbind(index=index,df)
+df$X1=NULL
+summary(df)
+df$FactCheck<-as.factor(df$FactCheck)#3level
+df$FactLevel<-as.factor(df$FactLevel)#6level
+df%>%count()
+head(df)
+
+
+
+specialcharactor <- function(x){ 
+  gsub("…|⋆|–|‹|”|“|‘|’|@", " ", x) 
+}
+
+preprocess_corpus <- function(corpus){
+  corpus <- tm_map(corpus, content_transformer(tolower))
+  corpus <- tm_map(corpus, removeNumbers)
+  corpus <- tm_map(corpus, removePunctuation)
+  corpus <- tm_map(corpus, specialcharactor)
+  corpus <- tm_map(corpus, removeWords, stopwords("english"))
+  corpus <- tm_map(corpus,stemDocument)
+  corpus <- tm_map(corpus, stripWhitespace)
+  return (corpus)
+}
+content_corpus <- Corpus(VectorSource(df$Content))
+content_dtm <- DocumentTermMatrix(preprocess_corpus(content_corpus))
+content_dtm_matrix <- as.matrix(content_dtm)
+content_length <- rowSums(content_dtm_matrix)
+tl_df <- data.frame(df,content_length)
+tl_df$Content<-NULL
+head(tl_df)
+
+```
+```{r}
+#read_freq
+#3level_f_author
+bfa<-read_csv("AuthorOccasion/BigFalse_Author.csv")
+bfa
+bta<-read_csv("AuthorOccasion/BigTrue_Author.csv")
+bhta<-read_csv("AuthorOccasion/BigHalfTrue_Author.csv")
+bfa <- na.omit(bfa)
+bta <- na.omit(bta)
+bhta <- na.omit(bhta)
+```
+
+
+```{r}
+
+temp <- left_join(tl_df,bfa,by="Author")
+names(temp)[names(temp) == 'freq'] <- 'l3FA'
+
+temp <- left_join(temp,bta,by="Author")
+names(temp)[names(temp) == 'freq'] <- 'l3TA'
+
+temp <- left_join(temp,bhta,by="Author")
+names(temp)[names(temp) == 'freq'] <- 'l3HTA'
+
+temp$l3FA[is.na(temp$l3FA)]<-0
+temp$l3TA[is.na(temp$l3TA)]<-0
+temp$l3HTA[is.na(temp$l3HTA)]<-0
+
+temp
+```
+
+```{r}
+bfo<-read_csv("AuthorOccasion/BigFalse_Occasion.csv")
+bfo <- na.omit(bfo)
+bto<-read_csv("AuthorOccasion/BigTrue_Occasion.csv")
+bto <- na.omit(bto)
+bhto<-read_csv("AuthorOccasion/BigHalfTrue_Occasion.csv")
+bhto <- na.omit(bhto)
+bfo
+```
+
+```{r}
+temp <- left_join(temp,bfo,by="Occasion")
+names(temp)[names(temp) == 'freq'] <- 'l3FO'
+
+temp <- left_join(temp,bto,by="Occasion")
+names(temp)[names(temp) == 'freq'] <- 'l3TO'
+
+temp <- left_join(temp,bhto,by="Occasion")
+names(temp)[names(temp) == 'freq'] <- 'l3HTO'
+
+temp$l3FO[is.na(temp$l3FO)]<-0
+temp$l3TO[is.na(temp$l3TO)]<-0
+temp$l3HTO[is.na(temp$l3HTO)]<-0
+
+temp
+```
+```{r}
+map<-as.data.frame(get_sentiments("afinn"))
+map
+```
+```{r}
+wordf<-as.data.frame(content_dtm$dimnames$Terms)
+names(wordf)[names(wordf) == 'content_dtm$dimnames$Terms'] <- 'word'
+wordf
+setmap<-left_join(wordf,map,by="word")
+setmap$value[is.na(setmap$value)]<-0
+setmap
+```
+```{r}
+k<-as.numeric(setmap$value)
+k
+sent_matrix<-sweep(content_dtm_matrix,2,k,"*")
+sent_score <- rowSums(sent_matrix)
+temp$sentscore<-sent_score
+temp<-cbind(temp,content_dtm_matrix)
+temp$FactLevel=NULL
+#write.csv(temp, file = "3leveldf.csv")
+```
+
+```{r}
+#6level_f_author
+fa<-read_csv("AuthorOccasion/False_Author.csv")
+fa<- na.omit(fa)
+
+fmfa<-read_csv("AuthorOccasion/FMostlyFalse_Author.csv")
+fmfa<- na.omit(fmfa)
+
+hta<-read_csv("AuthorOccasion/HalfTrue_Author.csv")
+hta<- na.omit(hta)
+
+mta<-read_csv("AuthorOccasion/MostlyTrue_Author.csv")
+mta<- na.omit(mta)
+
+ta<-read_csv("AuthorOccasion/True_Author.csv")
+ta<- na.omit(ta)
+
+pfa<-read_csv("AuthorOccasion/PantsFire_Author.csv")
+pfa<- na.omit(pfa)
+```
+```{r}
+small <- left_join(tl_df,fa,by="Author")
+names(small)[names(small) == 'freq'] <- 'l6FA'
+
+
+small <- left_join(small,fmfa,by="Author")
+names(small)[names(small) == 'freq'] <- 'l6FMFA'
+
+small <- left_join(small,hta,by="Author")
+names(small)[names(small) == 'freq'] <- 'l6HTA'
+
+small <- left_join(small,mta,by="Author")
+names(small)[names(small) == 'freq'] <- 'l6MTA'
+
+small <- left_join(small,ta,by="Author")
+names(small)[names(small) == 'freq'] <- 'l6TA'
+
+small <- left_join(small,pfa,by="Author")
+names(small)[names(small) == 'freq'] <- 'l6PFA'
+
+small$l6FA[is.na(small$l6FA)]<-0
+small$l6FMFA[is.na(small$l6FMFA)]<-0
+small$l6HTA[is.na(small$l6HTA)]<-0
+small$l6MTA[is.na(small$l6MTA)]<-0
+small$l6TA[is.na(small$l6TA)]<-0
+small$l6PFA[is.na(small$l6PFA)]<-0
+
+small
+```
+```{r}
+fo<-read_csv("AuthorOccasion/False_Occasion.csv")
+fo<- na.omit(fo)
+
+fmfo<-read_csv("AuthorOccasion/FMostlyFalse_Occasion.csv")
+fmfo<- na.omit(fmfo)
+
+hto<-read_csv("AuthorOccasion/HalfTrue_Occasion.csv")
+hto<- na.omit(hto)
+
+mto<-read_csv("AuthorOccasion/MostlyTrue_Occasion.csv")
+mto<- na.omit(mto)
+
+to<-read_csv("AuthorOccasion/True_Occasion.csv")
+to<- na.omit(to)
+
+pfo<-read_csv("AuthorOccasion/PantsFire_Occasion.csv")
+pfo<- na.omit(pfo)
+```
+
+```{r}
+small <- left_join(small,fo,by="Occasion")
+names(small)[names(small) == 'freq'] <- 'l6FO'
+
+
+small <- left_join(small,fmfo,by="Occasion")
+names(small)[names(small) == 'freq'] <- 'l6FMFO'
+
+small <- left_join(small,hto,by="Occasion")
+names(small)[names(small) == 'freq'] <- 'l6HTO'
+
+small <- left_join(small,mto,by="Occasion")
+names(small)[names(small) == 'freq'] <- 'l6MTO'
+
+small <- left_join(small,to,by="Occasion")
+names(small)[names(small) == 'freq'] <- 'l6TO'
+
+small <- left_join(small,pfo,by="Occasion")
+names(small)[names(small) == 'freq'] <- 'l6PFO'
+
+small$l6FO[is.na(small$l6FO)]<-0
+small$l6FMFO[is.na(small$l6FMFO)]<-0
+small$l6HTO[is.na(small$l6HTO)]<-0
+small$l6MTO[is.na(small$l6MTO)]<-0
+small$l6TO[is.na(small$l6TO)]<-0
+small$l6PFO[is.na(small$l6PFO)]<-0
+
+small
+```
+```{r}
+small$sentscore<-sent_score
+small
+small<-cbind(small,content_dtm_matrix)
+small$FactCheck=NULL
+#write.csv(small, file = "6leveldf.csv")
+```
+
+```{r}
+library(HH)
+library(ggcorrplot)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+library(dplyr)
+```
+
+```{r}
+Data1<-read_csv("Data1_10.csv")
+Data2<-read_csv("RunFilesInThisFolder/Data2.csv")
+Data3<-read_csv("RunFilesInThisFolder/Data3.csv")
+Data4<-read_csv("RunFilesInThisFolder/Data4.csv")
+
+Data1<-Data1[,c("FactCheck", "content_length")]
+Data3<-Data3[,c("FactCheck", "content_length")]
+
+Data1$FactCheck<-as.factor(Data1$FactCheck)
+#ggcorrplot(cor(Data1))
+Data1$X1=NULL
+Data1
+
+```
+### small test for classification
+```{r}
+test<-Data1
+test$index=NULL
+test$Author=NULL
+test$Occasion=NULL
+test
+dim(Data1)
+```
+
+```{r}
+modrfacc <- train( FactCheck ~., Data1,
+                         method = 'nnet',
+                         metric = "Accuracy",
+                         trControl = my_ctrlacc,
+                         importance = TRUE)
+
+modrfacc
+```
+```{r}
+res.ftest <- var.test(content_length ~ FactCheck, data = Data1)
+res.ftest
+```
+

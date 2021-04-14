@@ -1,0 +1,15 @@
+Data1：
+	Fact level: 3
+	Author and Occasion Info: Yes
+
+Data2：
+	Fact level: 6
+	Author and Occasion Info: Yes
+
+Data3：
+	Fact level: 3
+	Author and Occasion Info: No
+
+Data4：
+	Fact level: 6
+	Author and Occasion Info: No

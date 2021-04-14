@@ -1,0 +1,65 @@
+---
+title: "Final Project: Progress Report"
+date: today
+
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    theme: flatly
+---
+
+# Overview
+
+> In this progress report, you'll show some intermediate results of your final project. (Note: This milestone is considered as part of the project management. The grades are only tentative. You should focus on getting some progress. Your final project outcome will outweight the intermediate results.)
+
+0. (5%) Fill the basic information
+
+    * Project title: {replace this with your project title}
+    * Repository: {replace this with your git repository link}
+    * Team member(s): {replace the following with your member information}
+Lastname, Firstname (email: PITT EMAIL)
+Lastname, Firstname (email: PITT EMAIL)
+Lastname, Firstname (email: PITT EMAIL)
+
+1. (40%) Extend your abstract, describe your project in more details. It should be 300--500 words in length providing:
+    + your project goal, or the problem you plan to work on; 
+    + (motivation and significance) why the problem is interesting and/or important; 
+    + the approach you plan to take, including what data mining tasks you will perform, and what potential techniques you will try; 
+    + what dataset you plan to use and how you will get the data (if the data is publicly available, provide the exact reference to the data; otherwise, provide a description about the data source).
+
+2. (30%) Give some preliminary description or analysis about your dataset(s). You should have early numbers or a figure in this report. This part can be short or long, depending on your actual progress. 
+
+3. (25%) The following questions are design to help you manage the progress in doing the final project. Your answers don't need to be long or detailed but will show that you have a plan to address them in your final report.
+    a) What do you try to accomplish in this project? What have you done so far?
+    b) What are the strengths/novelty of your proposed idea? Why is the problem challenging?
+    c) How will you evaluate your method(s)? What are the performance measures and baseline methods?
+    d) Have you found any the research or works related to your project/problem/data? Where do you find the related work? 
+    e) Are there any challenges you encounter so far? How do you plan to solve it?
+
+
+```{r document_setup, echo=F, message=F, warning=F}
+# This chunk can include things you need for the rest of the document
+library('ggplot2') ## most of the time you will need ggplot
+theme_set(theme_bw()) # change the default ggplot theme to black-and-white
+
+knitr::opts_chunk$set(
+  echo=T, ## show your R code chunk
+  message = F, ## hide the message
+  warning = F, ## hide the warning
+  autodep = T ## make sure your separate code chunks can find the dependencies (from other code chunk)
+)
+```
+
+# 0. Fill the basic information
+
+# 1. Extended abstract 
+
+# 2. Preliminary results
+
+```{r}
+## YOUR CODE HERE
+```
+
+# 3. Your answers to Problem 3.
