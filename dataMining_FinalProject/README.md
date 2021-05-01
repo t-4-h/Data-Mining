@@ -5,10 +5,6 @@ Shangbin Tang
 Chengchen Wang <br>
 Taylor Herb
 
-* Progress Report:    
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/INFSCI%202160_%20ProgressReport.pdf  
-
-
 
 ## Description  
 
