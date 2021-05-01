@@ -18,27 +18,26 @@ Hence, in this project, we aim to figure out a method to detect and classify fal
 
 ### Files:  
 * scrapping.ipynb  
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/scrapping.ipynb  
+
 this is the program we wrote to scrape the data.    
   
 * Scraped data pre-processing1.ipynb  
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/Scraped%20data%20pre-processing1.ipynb  
 this file performs some merging and preprocessing work of the just-scrapped half-raw data.  
 
 * code2.r  
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/code2.R  
+
 this file is the program we wrote about sentiment analysis.  
 
 * code3.r  
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/code3.R  
+
 this file is the program we wrote about high frequency word(unigram) in information.  
 
 * code4.r  
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/code4.R  
+
 this file is the program we wrote about high frequency word(bigram) in information.  
 
 * code5.rmd
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/code5.Rmd  
+
 this file is the program we wrote to merge dataset, and calculate the sentiment score, content length in information.
 
 * data1.rmd/data1.html
@@ -66,7 +65,6 @@ this file includes the final dataset 1 included for analysis (3-levels, historic
 this file includes the final dataset 1 included for analysis (6-levels, historical score not included, term frequency > 3)
 
 * Final Paper_Team11_Disinformation and Fake News detection_During the Year of Covid-19 and Election.pdf  
-https://github.com/class-data-mining-master/2020-fall-dm-project-team11-procrastinator-club/blob/main/Final%20Paper_Team11_Disinformation%20and%20Fake%20News%20detection_During%20the%20Year%20of%20Covid-19%20and%20Election.pdf  
 this is the final paper  
 
 
